@@ -82,10 +82,14 @@ public class CharacterManager : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground"))
         {
             playerState = PlayerState.GROUND;
+
+            Debug.Log("Ground");
         }
         else if (collision.gameObject.CompareTag("Ice"))
         {
             playerState = PlayerState.ICE;
+
+            Debug.Log("Ice");
         }
     }
     private void OnTriggerEnter2D(Collider2D other)
@@ -93,6 +97,8 @@ public class CharacterManager : MonoBehaviour
         if (other.gameObject.CompareTag("Water"))
         {
             playerState = PlayerState.WATER;
+
+            Debug.Log("Water");
         }
     }
 }
