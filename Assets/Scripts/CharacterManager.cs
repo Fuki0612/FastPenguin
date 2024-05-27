@@ -10,7 +10,7 @@ public class CharacterManager : MonoBehaviour
     public Sprite flyingCharacter;
     private const float maxSpeed = 15;
 
-    //ƒvƒŒƒCƒ„[‚ª‚Ç‚ÌˆÚ“®•û–@‚ğ‚Æ‚éó‘Ô‚È‚Ì‚©‚ğŠÇ—
+    //ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Ç‚ÌˆÚ“ï¿½ï¿½ï¿½ï¿½@ï¿½ï¿½ï¿½Æ‚ï¿½ï¿½Ô‚È‚Ì‚ï¿½ï¿½ï¿½ï¿½Ç—ï¿½
     enum PlayerState
     {
         GROUND = 1,
@@ -42,7 +42,7 @@ public class CharacterManager : MonoBehaviour
         }
         if (Input.GetKey(KeyCode.D))
         {
-            //is•ûŒü‚É‡‚í‚¹‚½‰æ‘œ‚ÌŒü‚«‚Ì”½“]
+            //ï¿½iï¿½sï¿½ï¿½ï¿½ï¿½ï¿½Éï¿½ï¿½í‚¹ï¿½ï¿½ï¿½æ‘œï¿½ÌŒï¿½ï¿½ï¿½ï¿½Ì”ï¿½ï¿½]
             if (_rectTransform.localScale.x > 0)
             {
                 Vector2 temp = _rectTransform.localScale;
@@ -52,7 +52,7 @@ public class CharacterManager : MonoBehaviour
         }
         else if (Input.GetKey(KeyCode.A))
         {
-            //is•ûŒü‚É‡‚í‚¹‚½‰æ‘œ‚ÌŒü‚«‚Ì”½“]
+            //ï¿½iï¿½sï¿½ï¿½ï¿½ï¿½ï¿½Éï¿½ï¿½í‚¹ï¿½ï¿½ï¿½æ‘œï¿½ÌŒï¿½ï¿½ï¿½ï¿½Ì”ï¿½ï¿½]
             if (_rectTransform.localScale.x < 0)
             {
                 Vector2 temp = _rectTransform.localScale;
@@ -60,13 +60,13 @@ public class CharacterManager : MonoBehaviour
                 _rectTransform.localScale = temp;
             }
         }
-        //ƒfƒtƒHƒ‹ƒgp¨
+        //ï¿½fï¿½tï¿½Hï¿½ï¿½ï¿½gï¿½pï¿½ï¿½
         else if (Mathf.Abs(_rb.velocity.x) < 1e-1 && playerState == PlayerState.GROUND)
         {
             _spriteRenderer.sprite = idlingCharacter;
         }
 
-        //ƒWƒƒƒ“ƒv(”ò‚×‚éƒLƒƒƒ‰‚Ì‚İ)
+        //ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½v(ï¿½ï¿½×‚ï¿½Lï¿½ï¿½ï¿½ï¿½ï¿½Ì‚ï¿½)
         if (Input.GetKeyDown(KeyCode.W))
         {
             Vector3 currentVelocity = _rb.velocity;
@@ -77,7 +77,7 @@ public class CharacterManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        //ˆÚ“®
+        //ï¿½Ú“ï¿½
         if (Input.GetKey(KeyCode.D))
         {
             if (_rb.velocity.x < maxSpeed)
@@ -96,7 +96,7 @@ public class CharacterManager : MonoBehaviour
                 _rb.velocity = temp;
             }
         }
-        //Œ¸‘¬
+        //ï¿½ï¿½ï¿½ï¿½
         if ((!Input.GetKey(KeyCode.D) && !Input.GetKey(KeyCode.A)) || (Input.GetKey(KeyCode.D) && Input.GetKey(KeyCode.A)))
         {
             Vector2 temp = _rb.velocity;
@@ -105,16 +105,16 @@ public class CharacterManager : MonoBehaviour
         }
     }
 
-    //ƒvƒŒƒCƒ„[‚Ìó‘Ô‚ğŠÇ—
+    //ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ìï¿½Ô‚ï¿½ï¿½Ç—ï¿½
     private void OnCollisionStay2D(Collision2D collision)
     {
-        //•X‚ÉG‚ê‚Ä‚¢‚½‚çŠŠ‚é
+        //ï¿½Xï¿½ÉGï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½çŠŠï¿½ï¿½
         if (collision.gameObject.CompareTag("Ice") && playerState != PlayerState.ICE && playerState != PlayerState.WATER)
         {
             playerState = PlayerState.ICE;
             _spriteRenderer.sprite = flyingCharacter;
         }
-        //’n–Ê‚ÉG‚ê‚Ä‚¢‚½‚ç‘–‚é
+        //ï¿½nï¿½Ê‚ÉGï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ç‘–ï¿½ï¿½
         if (collision.gameObject.CompareTag("Ground") && playerState != PlayerState.WATER && Mathf.Abs(_rb.velocity.y) < 1e-2)
         {
             playerState = PlayerState.GROUND;
@@ -122,7 +122,7 @@ public class CharacterManager : MonoBehaviour
     }
     private void OnCollisionExit2D(Collision2D collision)
     {
-        //’n–Ê‚©‚ç—£‚ê‚½‚ç”ò‚Ô
+        //ï¿½nï¿½Ê‚ï¿½ï¿½ç—£ï¿½ê‚½ï¿½ï¿½ï¿½ï¿½
         if (collision.gameObject.CompareTag("Ground") && playerState == PlayerState.GROUND)
         {
             playerState = PlayerState.AIR;
@@ -131,7 +131,7 @@ public class CharacterManager : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D other)
     {
-        //…‚É“ü‚Á‚½‚ç‰j‚®
+        //ï¿½ï¿½ï¿½É“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½jï¿½ï¿½
         if (other.gameObject.CompareTag("Water"))
         {
             playerState = PlayerState.WATER;
@@ -140,7 +140,7 @@ public class CharacterManager : MonoBehaviour
     }
     private void OnTriggerExit2D(Collider2D other)
     {
-        //…‚©‚ço‚½‚ç”ò‚Ô
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½oï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         if (other.gameObject.CompareTag("Water"))
         {
             playerState = PlayerState.AIR;
