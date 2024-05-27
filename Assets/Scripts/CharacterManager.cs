@@ -8,9 +8,15 @@ public class CharacterManager : MonoBehaviour
     public Sprite idlingCharacter;
     public Sprite dashCharacter;
     public Sprite flyingCharacter;
-    private const float maxSpeed = 15;
+    private bool isGround = false;
+    private const float maxSpeed = 30;
+    private const float gravity = 50;
+    private float swim = 50;
+    private float slip = 50;
+    private float run = 50;
+    private float fly = 50;
 
-    //�v���C���[���ǂ̈ړ����@���Ƃ��ԂȂ̂����Ǘ�
+    //プレイヤーの状態管理
     enum PlayerState
     {
         GROUND = 1,
@@ -26,8 +32,11 @@ public class CharacterManager : MonoBehaviour
         _rectTransform = GetComponent<RectTransform>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _rb = GetComponent<Rigidbody2D>();
-        playerState = PlayerState.GROUND;
-    }
+        playerState = PlayerState.GROUND;swim = GameManager.statusSwim;
+        slip = GameManager.statusSlip;
+        run = GameManager.statusRun;
+        fly = GameManager.statusFly;
+}
 
     // Update is called once per frame
     void Update()
@@ -40,9 +49,10 @@ public class CharacterManager : MonoBehaviour
         {
             _spriteRenderer.sprite = dashCharacter;
         }
+
         if (Input.GetKey(KeyCode.D))
         {
-            //�i�s�����ɍ��킹���摜�̌����̔��]
+            //画像反転
             if (_rectTransform.localScale.x > 0)
             {
                 Vector2 temp = _rectTransform.localScale;
@@ -52,7 +62,7 @@ public class CharacterManager : MonoBehaviour
         }
         else if (Input.GetKey(KeyCode.A))
         {
-            //�i�s�����ɍ��킹���摜�̌����̔��]
+            //画像反転
             if (_rectTransform.localScale.x < 0)
             {
                 Vector2 temp = _rectTransform.localScale;
@@ -60,79 +70,198 @@ public class CharacterManager : MonoBehaviour
                 _rectTransform.localScale = temp;
             }
         }
-        //�f�t�H���g�p��
-        else if (Mathf.Abs(_rb.velocity.x) < 1e-1 && playerState == PlayerState.GROUND)
+        //静止状態
+        else if (Mathf.Abs(_rb.velocity.x) < 1e-1 && playerState == PlayerState.GROUND && _spriteRenderer.sprite != idlingCharacter)
         {
+            _rb.velocity = Vector2.zero;
             _spriteRenderer.sprite = idlingCharacter;
         }
 
-        //�W�����v(��ׂ�L�����̂�)
-        if (Input.GetKeyDown(KeyCode.W))
+        //地上ジャンプ
+        if (Input.GetKeyDown(KeyCode.W) && (playerState == PlayerState.GROUND || playerState == PlayerState.ICE))
         {
-            Vector3 currentVelocity = _rb.velocity;
+            Vector2 currentVelocity = _rb.velocity;
             currentVelocity.y = 15;
+            _rb.velocity = currentVelocity;
+        }
+
+        //空中ジャンプ
+        if (Input.GetKeyDown(KeyCode.W) && playerState == PlayerState.AIR && fly > 0)
+        {
+            if (_spriteRenderer.sprite != flyingCharacter)
+            {
+                _spriteRenderer.sprite = flyingCharacter;
+            }
+            Vector2 currentVelocity = _rb.velocity;
+            currentVelocity.y = fly/5;
+            _rb.velocity = currentVelocity;
+        }
+
+        //水中縦移動
+        if (Input.GetKeyDown(KeyCode.W) && playerState == PlayerState.WATER)
+        {
+            Vector2 currentVelocity = _rb.velocity;
+            currentVelocity.y = swim/5;
             _rb.velocity = currentVelocity;
         }
     }
 
     private void FixedUpdate()
     {
-        //�ړ�
+        //移動(最大速度未満ならその速度に、最大速度を超えているなら徐々に減速)
         if (Input.GetKey(KeyCode.D))
         {
-            if (_rb.velocity.x < maxSpeed)
+            Vector2 temp = _rb.velocity;
+            switch (playerState)
             {
-                Vector2 temp = _rb.velocity;
-                temp.x += 5;
-                _rb.velocity = temp;
+                case PlayerState.GROUND:
+                    if (temp.x <= maxSpeed * (run / 100))
+                    {
+                        temp.x = maxSpeed * (run / 100);
+                    }
+                    else
+                    {
+                        temp.x *= 0.9f;
+                    }
+                    break;
+                case PlayerState.ICE:
+                    if (temp.x <= maxSpeed * (slip / 100))
+                    {
+                        temp.x = maxSpeed * (slip / 100);
+                    }
+                    else
+                    {
+                        temp.x *= 0.9f;
+                    }
+                    break;
+                case PlayerState.WATER:
+                    if (temp.x <= maxSpeed * (swim / 100))
+                    {
+                        temp.x = maxSpeed * (swim / 100);
+                    }
+                    else
+                    {
+                        temp.x *= 0.9f;
+                    }
+                    break;
+                case PlayerState.AIR:
+                    if (temp.x <= Mathf.Max(maxSpeed * (fly / 100), 5))
+                    {
+                        temp.x = Mathf.Max(maxSpeed * (fly / 100), 5);
+                    }
+                    else
+                    {
+                        temp.x *= 0.9f;
+                    }
+                    break;
             }
+            _rb.velocity = temp;
         }
         if (Input.GetKey(KeyCode.A))
         {
-            if (_rb.velocity.x > -maxSpeed)
+            Vector2 temp = _rb.velocity;
+            switch (playerState)
             {
-                Vector2 temp = _rb.velocity;
-                temp.x -= 5;
-                _rb.velocity = temp;
+                case PlayerState.GROUND:
+                    if (temp.x >= -maxSpeed * (run / 100))
+                    {
+                        temp.x = -maxSpeed * (run / 100);
+                    }
+                    else
+                    {
+                        temp.x *= 0.9f;
+                    }
+                    break;
+                case PlayerState.ICE:
+                    if (temp.x >= -maxSpeed * (slip / 100))
+                    {
+                        temp.x = -maxSpeed * (slip / 100);
+                    }
+                    else
+                    {
+                        temp.x *= 0.9f;
+                    }
+                    break;
+                case PlayerState.WATER:
+                    if (temp.x >= -maxSpeed * (swim / 100))
+                    {
+                        temp.x = -maxSpeed * (swim / 100);
+                    }
+                    else
+                    {
+                        temp.x *= 0.9f;
+                    }
+                    break;
+                case PlayerState.AIR:
+                    if (temp.x >= Mathf.Min(-maxSpeed * (fly / 100), -5))
+                    {
+                        temp.x = Mathf.Min(-maxSpeed * (fly / 100), -5);
+                    }
+                    else
+                    {
+                        temp.x *= 0.9f;
+                    }
+                    break;
             }
+            _rb.velocity = temp;
         }
-        //����
+        //摩擦減速
         if ((!Input.GetKey(KeyCode.D) && !Input.GetKey(KeyCode.A)) || (Input.GetKey(KeyCode.D) && Input.GetKey(KeyCode.A)))
         {
             Vector2 temp = _rb.velocity;
             temp.x *= 0.9f;
             _rb.velocity = temp;
         }
+        //重力
+        if (playerState != PlayerState.WATER)
+        {
+            _rb.AddForce(new(0,-gravity));
+        }
+        else
+        {
+            _rb.AddForce(new(0, -gravity/4));
+        }
     }
 
-    //�v���C���[�̏�Ԃ��Ǘ�
+    //移動方法の管理
     private void OnCollisionStay2D(Collision2D collision)
     {
-        //�X�ɐG��Ă����犊��
+        //滑る
         if (collision.gameObject.CompareTag("Ice") && playerState != PlayerState.ICE && playerState != PlayerState.WATER)
         {
             playerState = PlayerState.ICE;
             _spriteRenderer.sprite = flyingCharacter;
         }
-        //�n�ʂɐG��Ă����瑖��
-        if (collision.gameObject.CompareTag("Ground") && playerState != PlayerState.WATER && Mathf.Abs(_rb.velocity.y) < 1e-2)
+        //走る
+        if (collision.gameObject.CompareTag("Ground") && playerState != PlayerState.WATER && isGround)
         {
             playerState = PlayerState.GROUND;
+            if (_spriteRenderer.sprite == flyingCharacter)
+            {
+                _spriteRenderer.sprite = dashCharacter;
+            }
         }
     }
     private void OnCollisionExit2D(Collision2D collision)
     {
-        //�n�ʂ��痣�ꂽ����
-        if (collision.gameObject.CompareTag("Ground") && playerState == PlayerState.GROUND)
+        //飛ぶ
+        if ((collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Ice")) && (playerState == PlayerState.GROUND || playerState == PlayerState.ICE))
         {
             playerState = PlayerState.AIR;
-            _spriteRenderer.sprite = flyingCharacter;
         }
     }
     private void OnTriggerEnter2D(Collider2D other)
     {
-        //���ɓ�������j��
-        if (other.gameObject.CompareTag("Water"))
+        //地上判定の補佐
+        if (other.gameObject.CompareTag("Ground"))
+        {
+            isGround = true;
+        }
+    }
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        //泳ぐ
+        if (other.gameObject.CompareTag("Water") && !isGround && playerState != PlayerState.WATER)
         {
             playerState = PlayerState.WATER;
             _spriteRenderer.sprite = flyingCharacter;
@@ -140,11 +269,16 @@ public class CharacterManager : MonoBehaviour
     }
     private void OnTriggerExit2D(Collider2D other)
     {
-        //������o������
+        //水中を出る
         if (other.gameObject.CompareTag("Water"))
         {
             playerState = PlayerState.AIR;
             _spriteRenderer.sprite = flyingCharacter;
+        }
+        //地上判定の補佐
+        if (other.gameObject.CompareTag("Ground"))
+        {
+            isGround = false;
         }
     }
 }

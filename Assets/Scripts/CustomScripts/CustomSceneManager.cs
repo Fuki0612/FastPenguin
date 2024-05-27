@@ -7,10 +7,11 @@ public class CustomSceneManager : MonoBehaviour
     public static int slip;
     public static int run;
     public static int fly;
+    private GameManager gameManager;
     // Start is called before the first frame update
     void Start()
     {
-        
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
     }
 
     // Update is called once per frame
@@ -40,6 +41,8 @@ public class CustomSceneManager : MonoBehaviour
         GameObject obj4 = GameObject.Find("TextFly");
         flyScript = obj4.GetComponent<FlyValue>();
         fly = flyScript.fly;
+
+        gameManager.StatusSet(swim, slip, run, fly);
 
         SceneManager.LoadScene("MainScene");
     }
