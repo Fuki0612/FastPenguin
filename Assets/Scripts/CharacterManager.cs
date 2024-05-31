@@ -41,16 +41,12 @@ public class CharacterManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.D) && playerState == PlayerState.GROUND)
+        if (Input.GetKey(KeyCode.D) && Input.GetKey(KeyCode.A) && Mathf.Abs(_rb.velocity.x) < 1e-1 && playerState == PlayerState.GROUND && _spriteRenderer.sprite != idlingCharacter)
         {
-            _spriteRenderer.sprite = dashCharacter;
+            _rb.velocity = Vector2.zero;
+            _spriteRenderer.sprite = idlingCharacter;
         }
-        if (Input.GetKeyDown(KeyCode.A) && playerState == PlayerState.GROUND)
-        {
-            _spriteRenderer.sprite = dashCharacter;
-        }
-
-        if (Input.GetKey(KeyCode.D))
+        else if (Input.GetKey(KeyCode.D))
         {
             //画像反転
             if (_rectTransform.localScale.x > 0)
@@ -108,9 +104,21 @@ public class CharacterManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        //移動(最大速度未満ならその速度に、最大速度を超えているなら徐々に減速)
-        if (Input.GetKey(KeyCode.D))
+        //摩擦減速
+        if ((!Input.GetKey(KeyCode.D) && !Input.GetKey(KeyCode.A)) || (Input.GetKey(KeyCode.D) && Input.GetKey(KeyCode.A)))
         {
+            Vector2 temp = _rb.velocity;
+            temp.x *= 0.9f;
+            _rb.velocity = temp;
+        }
+        //移動(最大速度未満ならその速度に、最大速度を超えているなら徐々に減速)
+        else if (Input.GetKey(KeyCode.D))
+        {
+            //ダッシュ画像に切り替え
+            if (playerState == PlayerState.GROUND && _spriteRenderer.sprite != dashCharacter)
+            {
+                _spriteRenderer.sprite = dashCharacter;
+            }
             Vector2 temp = _rb.velocity;
             switch (playerState)
             {
@@ -157,8 +165,13 @@ public class CharacterManager : MonoBehaviour
             }
             _rb.velocity = temp;
         }
-        if (Input.GetKey(KeyCode.A))
+        else if (Input.GetKey(KeyCode.A))
         {
+            //ダッシュ画像に切り替え
+            if (playerState == PlayerState.GROUND && _spriteRenderer.sprite != dashCharacter)
+            {
+                _spriteRenderer.sprite = dashCharacter;
+            }
             Vector2 temp = _rb.velocity;
             switch (playerState)
             {
@@ -205,13 +218,7 @@ public class CharacterManager : MonoBehaviour
             }
             _rb.velocity = temp;
         }
-        //摩擦減速
-        if ((!Input.GetKey(KeyCode.D) && !Input.GetKey(KeyCode.A)) || (Input.GetKey(KeyCode.D) && Input.GetKey(KeyCode.A)))
-        {
-            Vector2 temp = _rb.velocity;
-            temp.x *= 0.9f;
-            _rb.velocity = temp;
-        }
+
         //重力
         if (playerState != PlayerState.WATER)
         {
