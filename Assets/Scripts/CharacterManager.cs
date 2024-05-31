@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public class CharacterManager : MonoBehaviour
@@ -8,8 +7,16 @@ public class CharacterManager : MonoBehaviour
     private Rigidbody2D _rb;
     public Sprite idlingCharacter;
     public Sprite dashCharacter;
+    public Sprite flyingCharacter;
+    private bool isGround = false;
+    private const float maxSpeed = 30;
+    private const float gravity = 50;
+    private float swim = 50;
+    private float slip = 50;
+    private float run = 50;
+    private float fly = 50;
 
-    //ƒvƒŒƒCƒ„[‚ª‚Ç‚ÌˆÚ“®•û–@‚ğ‚Æ‚éó‘Ô‚È‚Ì‚©‚ğŠÇ—
+    //ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®çŠ¶æ…‹ç®¡ç†
     enum PlayerState
     {
         GROUND = 1,
@@ -25,25 +32,23 @@ public class CharacterManager : MonoBehaviour
         _rectTransform = GetComponent<RectTransform>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _rb = GetComponent<Rigidbody2D>();
-        playerState = PlayerState.GROUND;
-    }
+        playerState = PlayerState.GROUND;swim = GameManager.statusSwim;
+        slip = GameManager.statusSlip;
+        run = GameManager.statusRun;
+        fly = GameManager.statusFly;
+}
 
     // Update is called once per frame
     void Update()
     {
-        //ƒLƒƒƒ‰ƒNƒ^[‚Ìp¨‚Ì•ÏX
-        if (Input.GetKeyDown(KeyCode.D))
+        if (Input.GetKey(KeyCode.D) && Input.GetKey(KeyCode.A) && Mathf.Abs(_rb.velocity.x) < 1e-1 && playerState == PlayerState.GROUND && _spriteRenderer.sprite != idlingCharacter)
         {
-            _spriteRenderer.sprite = dashCharacter;
+            _rb.velocity = Vector2.zero;
+            _spriteRenderer.sprite = idlingCharacter;
         }
-        else if (Input.GetKeyDown(KeyCode.A))
+        else if (Input.GetKey(KeyCode.D))
         {
-            _spriteRenderer.sprite = dashCharacter;
-        }
-
-        if (Input.GetKey(KeyCode.D))
-        {
-            //is•ûŒü‚É‡‚í‚¹‚½‰æ‘œ‚ÌŒü‚«‚Ì”½“]
+            //ç”»åƒåè»¢
             if (_rectTransform.localScale.x > 0)
             {
                 Vector2 temp = _rectTransform.localScale;
@@ -53,7 +58,7 @@ public class CharacterManager : MonoBehaviour
         }
         else if (Input.GetKey(KeyCode.A))
         {
-            //is•ûŒü‚É‡‚í‚¹‚½‰æ‘œ‚ÌŒü‚«‚Ì”½“]
+            //ç”»åƒåè»¢
             if (_rectTransform.localScale.x < 0)
             {
                 Vector2 temp = _rectTransform.localScale;
@@ -61,44 +66,226 @@ public class CharacterManager : MonoBehaviour
                 _rectTransform.localScale = temp;
             }
         }
-        //ƒfƒtƒHƒ‹ƒgp¨
-        else
+        //é™æ­¢çŠ¶æ…‹
+        else if (Mathf.Abs(_rb.velocity.x) < 1e-1 && playerState == PlayerState.GROUND && _spriteRenderer.sprite != idlingCharacter)
         {
+            _rb.velocity = Vector2.zero;
             _spriteRenderer.sprite = idlingCharacter;
         }
 
-        //ƒWƒƒƒ“ƒv(”ò‚×‚éƒLƒƒƒ‰‚Ì‚İ)
-        if (Input.GetKeyDown(KeyCode.W))
+        //åœ°ä¸Šã‚¸ãƒ£ãƒ³ãƒ—
+        if (Input.GetKeyDown(KeyCode.W) && (playerState == PlayerState.GROUND || playerState == PlayerState.ICE))
         {
-            Vector3 currentVelocity = _rb.velocity;
+            Vector2 currentVelocity = _rb.velocity;
             currentVelocity.y = 15;
+            _rb.velocity = currentVelocity;
+        }
+
+        //ç©ºä¸­ã‚¸ãƒ£ãƒ³ãƒ—
+        if (Input.GetKeyDown(KeyCode.W) && playerState == PlayerState.AIR && fly > 0)
+        {
+            if (_spriteRenderer.sprite != flyingCharacter)
+            {
+                _spriteRenderer.sprite = flyingCharacter;
+            }
+            Vector2 currentVelocity = _rb.velocity;
+            currentVelocity.y = fly/5;
+            _rb.velocity = currentVelocity;
+        }
+
+        //æ°´ä¸­ç¸¦ç§»å‹•
+        if (Input.GetKeyDown(KeyCode.W) && playerState == PlayerState.WATER)
+        {
+            Vector2 currentVelocity = _rb.velocity;
+            currentVelocity.y = swim/5;
             _rb.velocity = currentVelocity;
         }
     }
 
-    //‰½‚ÉÚ‚µ‚Ä‚¢‚é‚©‚ğ‚±‚ñ‚ÈŠ´‚¶‚Åæ“¾‚Å‚«‚éA‚Í‚¸(‚Ü‚¾‚µ‚Ä‚È‚¢)
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void FixedUpdate()
     {
-        if (collision.gameObject.CompareTag("Ground"))
+        //æ‘©æ“¦æ¸›é€Ÿ
+        if ((!Input.GetKey(KeyCode.D) && !Input.GetKey(KeyCode.A)) || (Input.GetKey(KeyCode.D) && Input.GetKey(KeyCode.A)))
         {
-            playerState = PlayerState.GROUND;
-
-            Debug.Log("Ground");
+            Vector2 temp = _rb.velocity;
+            temp.x *= 0.9f;
+            _rb.velocity = temp;
         }
-        else if (collision.gameObject.CompareTag("Ice"))
+        //ç§»å‹•(æœ€å¤§é€Ÿåº¦æœªæº€ãªã‚‰ãã®é€Ÿåº¦ã«ã€æœ€å¤§é€Ÿåº¦ã‚’è¶…ãˆã¦ã„ã‚‹ãªã‚‰å¾ã€…ã«æ¸›é€Ÿ)
+        else if (Input.GetKey(KeyCode.D))
+        {
+            //ãƒ€ãƒƒã‚·ãƒ¥ç”»åƒã«åˆ‡ã‚Šæ›¿ãˆ
+            if (playerState == PlayerState.GROUND && _spriteRenderer.sprite != dashCharacter)
+            {
+                _spriteRenderer.sprite = dashCharacter;
+            }
+            Vector2 temp = _rb.velocity;
+            switch (playerState)
+            {
+                case PlayerState.GROUND:
+                    if (temp.x <= maxSpeed * (run / 100))
+                    {
+                        temp.x = maxSpeed * (run / 100);
+                    }
+                    else
+                    {
+                        temp.x *= 0.9f;
+                    }
+                    break;
+                case PlayerState.ICE:
+                    if (temp.x <= maxSpeed * (slip / 100))
+                    {
+                        temp.x = maxSpeed * (slip / 100);
+                    }
+                    else
+                    {
+                        temp.x *= 0.9f;
+                    }
+                    break;
+                case PlayerState.WATER:
+                    if (temp.x <= maxSpeed * (swim / 100))
+                    {
+                        temp.x = maxSpeed * (swim / 100);
+                    }
+                    else
+                    {
+                        temp.x *= 0.9f;
+                    }
+                    break;
+                case PlayerState.AIR:
+                    if (temp.x <= Mathf.Max(maxSpeed * (fly / 100), 5))
+                    {
+                        temp.x = Mathf.Max(maxSpeed * (fly / 100), 5);
+                    }
+                    else
+                    {
+                        temp.x *= 0.9f;
+                    }
+                    break;
+            }
+            _rb.velocity = temp;
+        }
+        else if (Input.GetKey(KeyCode.A))
+        {
+            //ãƒ€ãƒƒã‚·ãƒ¥ç”»åƒã«åˆ‡ã‚Šæ›¿ãˆ
+            if (playerState == PlayerState.GROUND && _spriteRenderer.sprite != dashCharacter)
+            {
+                _spriteRenderer.sprite = dashCharacter;
+            }
+            Vector2 temp = _rb.velocity;
+            switch (playerState)
+            {
+                case PlayerState.GROUND:
+                    if (temp.x >= -maxSpeed * (run / 100))
+                    {
+                        temp.x = -maxSpeed * (run / 100);
+                    }
+                    else
+                    {
+                        temp.x *= 0.9f;
+                    }
+                    break;
+                case PlayerState.ICE:
+                    if (temp.x >= -maxSpeed * (slip / 100))
+                    {
+                        temp.x = -maxSpeed * (slip / 100);
+                    }
+                    else
+                    {
+                        temp.x *= 0.9f;
+                    }
+                    break;
+                case PlayerState.WATER:
+                    if (temp.x >= -maxSpeed * (swim / 100))
+                    {
+                        temp.x = -maxSpeed * (swim / 100);
+                    }
+                    else
+                    {
+                        temp.x *= 0.9f;
+                    }
+                    break;
+                case PlayerState.AIR:
+                    if (temp.x >= Mathf.Min(-maxSpeed * (fly / 100), -5))
+                    {
+                        temp.x = Mathf.Min(-maxSpeed * (fly / 100), -5);
+                    }
+                    else
+                    {
+                        temp.x *= 0.9f;
+                    }
+                    break;
+            }
+            _rb.velocity = temp;
+        }
+
+        //é‡åŠ›
+        if (playerState != PlayerState.WATER)
+        {
+            _rb.AddForce(new(0,-gravity));
+        }
+        else
+        {
+            _rb.AddForce(new(0, -gravity/4));
+        }
+    }
+
+    //ç§»å‹•æ–¹æ³•ã®ç®¡ç†
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        //æ»‘ã‚‹
+        if (collision.gameObject.CompareTag("Ice") && playerState != PlayerState.ICE && playerState != PlayerState.WATER)
         {
             playerState = PlayerState.ICE;
-
-            Debug.Log("Ice");
+            _spriteRenderer.sprite = flyingCharacter;
+        }
+        //èµ°ã‚‹
+        if (collision.gameObject.CompareTag("Ground") && playerState != PlayerState.WATER && isGround)
+        {
+            playerState = PlayerState.GROUND;
+            if (_spriteRenderer.sprite == flyingCharacter)
+            {
+                _spriteRenderer.sprite = dashCharacter;
+            }
+        }
+    }
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        //é£›ã¶
+        if ((collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Ice")) && (playerState == PlayerState.GROUND || playerState == PlayerState.ICE))
+        {
+            playerState = PlayerState.AIR;
         }
     }
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.gameObject.CompareTag("Water"))
+        //åœ°ä¸Šåˆ¤å®šã®è£œä½
+        if (other.gameObject.CompareTag("Ground"))
+        {
+            isGround = true;
+        }
+    }
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        //æ³³ã
+        if (other.gameObject.CompareTag("Water") && !isGround && playerState != PlayerState.WATER)
         {
             playerState = PlayerState.WATER;
-
-            Debug.Log("Water");
+            _spriteRenderer.sprite = flyingCharacter;
+        }
+    }
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        //æ°´ä¸­ã‚’å‡ºã‚‹
+        if (other.gameObject.CompareTag("Water"))
+        {
+            playerState = PlayerState.AIR;
+            _spriteRenderer.sprite = flyingCharacter;
+        }
+        //åœ°ä¸Šåˆ¤å®šã®è£œä½
+        if (other.gameObject.CompareTag("Ground"))
+        {
+            isGround = false;
         }
     }
 }
