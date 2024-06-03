@@ -15,6 +15,8 @@ public class CharacterManager : MonoBehaviour
     private float slip = 50;
     private float run = 50;
     private float fly = 50;
+    private int jampCount = 0;
+    private MainSceneManager mainSceneManager;
 
     //プレイヤーの状態管理
     enum PlayerState
@@ -36,6 +38,8 @@ public class CharacterManager : MonoBehaviour
         slip = GameManager.statusSlip;
         run = GameManager.statusRun;
         fly = GameManager.statusFly;
+        GameObject mManager = GameObject.Find("MainSceneManager");
+        mainSceneManager = mManager.GetComponent<MainSceneManager>();
 }
 
     // Update is called once per frame
@@ -81,8 +85,8 @@ public class CharacterManager : MonoBehaviour
             _rb.velocity = currentVelocity;
         }
 
-        //空中ジャンプ
-        if (Input.GetKeyDown(KeyCode.W) && playerState == PlayerState.AIR && fly > 0)
+        //空中ジャンプ(fly/5回までしか連続で飛べない)
+        if (Input.GetKeyDown(KeyCode.W) && playerState == PlayerState.AIR && fly > 0 && jampCount < fly / 5)
         {
             if (_spriteRenderer.sprite != flyingCharacter)
             {
@@ -91,6 +95,7 @@ public class CharacterManager : MonoBehaviour
             Vector2 currentVelocity = _rb.velocity;
             currentVelocity.y = fly/5;
             _rb.velocity = currentVelocity;
+            jampCount++;
         }
 
         //水中縦移動
@@ -99,6 +104,15 @@ public class CharacterManager : MonoBehaviour
             Vector2 currentVelocity = _rb.velocity;
             currentVelocity.y = swim/5;
             _rb.velocity = currentVelocity;
+        }
+        if (Input.GetKeyDown(KeyCode.S) && playerState == PlayerState.WATER)
+        {
+            _rb.AddForce(new(0, -5*swim));
+        }
+        //ゴール
+        if (_rectTransform.anchoredPosition.x < -89000)
+        {
+            StartCoroutine(mainSceneManager.Goal());
         }
     }
 
@@ -234,10 +248,11 @@ public class CharacterManager : MonoBehaviour
     private void OnCollisionStay2D(Collision2D collision)
     {
         //滑る
-        if (collision.gameObject.CompareTag("Ice") && playerState != PlayerState.ICE && playerState != PlayerState.WATER)
+        if (collision.gameObject.CompareTag("Ice") && playerState != PlayerState.ICE && playerState != PlayerState.WATER && isGround)
         {
             playerState = PlayerState.ICE;
             _spriteRenderer.sprite = flyingCharacter;
+            jampCount = 0;
         }
         //走る
         if (collision.gameObject.CompareTag("Ground") && playerState != PlayerState.WATER && isGround)
@@ -247,6 +262,7 @@ public class CharacterManager : MonoBehaviour
             {
                 _spriteRenderer.sprite = dashCharacter;
             }
+            jampCount = 0;
         }
     }
     private void OnCollisionExit2D(Collision2D collision)
@@ -272,6 +288,7 @@ public class CharacterManager : MonoBehaviour
         {
             playerState = PlayerState.WATER;
             _spriteRenderer.sprite = flyingCharacter;
+            jampCount = 0;
         }
     }
     private void OnTriggerExit2D(Collider2D other)

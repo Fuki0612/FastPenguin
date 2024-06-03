@@ -1,20 +1,22 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class MainSceneManager : MonoBehaviour
 {
+    public GameObject goalText;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        goalText.SetActive(false);
     }
 
-    // Update is called once per frame
-    void Update()
+    public IEnumerator Goal()
     {
-        if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space))
-        {
-            SceneManager.LoadScene("ResultScene");
-        }
+        CameraMover.goal = true;
+        goalText.SetActive(true);
+        yield return new WaitForSeconds(5);
+        SceneManager.LoadScene("ResultScene");
     }
 }
