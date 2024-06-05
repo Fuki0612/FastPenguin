@@ -46,7 +46,8 @@ public class CharacterManager : MonoBehaviour
         fly = GameManager.statusFly;
         GameObject mManager = GameObject.Find("MainSceneManager");
         mainSceneManager = mManager.GetComponent<MainSceneManager>();
-}
+        timeScore = 0;
+    }
 
     // Update is called once per frame
     void Update()
@@ -101,7 +102,7 @@ public class CharacterManager : MonoBehaviour
                 _spriteRenderer.sprite = flyingCharacter;
             }
             Vector2 currentVelocity = _rb.velocity;
-            currentVelocity.y = fly/5 + 5;
+            currentVelocity.y = fly/5 + 10;
             _rb.velocity = currentVelocity;
             jampCount++;
         }
@@ -110,7 +111,7 @@ public class CharacterManager : MonoBehaviour
         if (playerState != PlayerState.AIR && jampCount > 0)
         {
             groundTime += Time.deltaTime;
-            if (groundTime > 100f / fly)
+            if (groundTime > 150f / (fly+50))
             {
                 groundTime = 0;
                 jampCount--;

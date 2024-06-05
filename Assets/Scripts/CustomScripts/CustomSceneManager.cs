@@ -1,4 +1,6 @@
+using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 public class CustomSceneManager : MonoBehaviour
@@ -8,10 +10,12 @@ public class CustomSceneManager : MonoBehaviour
     public static int run;
     public static int fly;
     private GameManager gameManager;
+    private Text countText;
     // Start is called before the first frame update
     void Start()
     {
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+        countText = GameObject.Find("Count").GetComponent<Text>();
     }
 
     // Update is called once per frame
@@ -26,7 +30,7 @@ public class CustomSceneManager : MonoBehaviour
         GameObject obj = GameObject.Find("Sumtext");
         SumScript = obj.GetComponent<StatusSum>();
 
-        if (200 <= SumScript.sum && SumScript.sum <= 250)
+        if (SumScript.sum <= 200)
         {
             SwimValue swimScript;
             GameObject obj1 = GameObject.Find("TextSwim");
@@ -50,7 +54,19 @@ public class CustomSceneManager : MonoBehaviour
 
             gameManager.StatusSet(swim, slip, run, fly);
 
-            SceneManager.LoadScene("MainScene");
+            StartCoroutine(START());
         }
+    }
+
+    IEnumerator START()
+    {
+        countText.raycastTarget = true;
+        countText.text = "3"; 
+        yield return new WaitForSeconds(1);
+        countText.text = "2";
+        yield return new WaitForSeconds(1);
+        countText.text = "1";
+        yield return new WaitForSeconds(1);
+        SceneManager.LoadScene("MainScene");
     }
 }
