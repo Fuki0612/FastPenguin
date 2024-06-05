@@ -1,8 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
 
 public class FlyValue : MonoBehaviour
 {
@@ -11,23 +8,29 @@ public class FlyValue : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        fly=50;
+        fly = 0;
     }
     public void Click1()
     {
-        if (fly < 100)
+        if (fly == 0)
         {
-            fly = fly + 5;
+            fly = 50;
         }
-        Update();
+        else if (fly < 100)
+        {
+            fly += 5;
+        }
     }
     public void Click2()
     {
-        if (fly > 0)
+        if (fly == 50)
+        {
+            fly = 0;
+        }
+        else if (fly > 50)
         {
             fly -= 5;
         }
-        Update();
     }
 
     // Update is called once per frame

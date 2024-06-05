@@ -1,8 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
 
 public class SwimValue : MonoBehaviour
 {
@@ -17,7 +14,7 @@ public class SwimValue : MonoBehaviour
     {
         if (swim < 100)
         {
-            swim = swim + 5;
+            swim += 5;
         }
         Update();
     }

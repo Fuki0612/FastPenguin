@@ -1,8 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
 
 public class RunValue : MonoBehaviour
 {
@@ -17,9 +14,8 @@ public class RunValue : MonoBehaviour
     {
         if (run < 100)
         {
-            run = run + 5;
+            run += 5;
         }
-        Update();
     }
     public void Click2()
     {
@@ -27,7 +23,6 @@ public class RunValue : MonoBehaviour
         {
             run -= 5;
         }
-        Update();
     }
 
     // Update is called once per frame

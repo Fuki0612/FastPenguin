@@ -1,8 +1,10 @@
+using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CharacterManager : MonoBehaviour
 {
-    private RectTransform _rectTransform;
+    public RectTransform _rectTransform;
     private SpriteRenderer _spriteRenderer;
     private Rigidbody2D _rb;
     public Sprite idlingCharacter;
@@ -16,7 +18,11 @@ public class CharacterManager : MonoBehaviour
     private float run = 50;
     private float fly = 50;
     private int jampCount = 0;
+    private float groundTime = 0;
     private MainSceneManager mainSceneManager;
+    public Text jampCountText;
+    public Text timeText;
+    public static float timeScore = 0;
 
     //プレイヤーの状態管理
     enum PlayerState
@@ -78,24 +84,43 @@ public class CharacterManager : MonoBehaviour
         }
 
         //地上ジャンプ
-        if (Input.GetKeyDown(KeyCode.W) && (playerState == PlayerState.GROUND || playerState == PlayerState.ICE))
+        if (Input.GetKeyDown(KeyCode.W) && isGround)
         {
             Vector2 currentVelocity = _rb.velocity;
             currentVelocity.y = 15;
             _rb.velocity = currentVelocity;
+            isGround = false;
         }
 
         //空中ジャンプ(fly/5回までしか連続で飛べない)
-        if (Input.GetKeyDown(KeyCode.W) && playerState == PlayerState.AIR && fly > 0 && jampCount < fly / 5)
+        else if (Input.GetKeyDown(KeyCode.W) && !isGround && playerState != PlayerState.WATER && fly > 0 && jampCount < fly / 5)
         {
+            playerState = PlayerState.AIR;
             if (_spriteRenderer.sprite != flyingCharacter)
             {
                 _spriteRenderer.sprite = flyingCharacter;
             }
             Vector2 currentVelocity = _rb.velocity;
-            currentVelocity.y = fly/5;
+            currentVelocity.y = fly/5 + 5;
             _rb.velocity = currentVelocity;
             jampCount++;
+        }
+
+        //ジャンプ回数の回復
+        if (playerState != PlayerState.AIR && jampCount > 0)
+        {
+            groundTime += Time.deltaTime;
+            if (groundTime > 100f / fly)
+            {
+                groundTime = 0;
+                jampCount--;
+            }
+        }
+
+        //空中に出た判定
+        if (Mathf.Abs(_rb.velocity.y) > 1 && playerState != PlayerState.AIR)
+        {
+            isGround = false;
         }
 
         //水中縦移動
@@ -113,6 +138,18 @@ public class CharacterManager : MonoBehaviour
         if (_rectTransform.anchoredPosition.x < -89000)
         {
             StartCoroutine(mainSceneManager.Goal());
+        }
+
+        //ジャンプ回数およびタイムの表示
+        if (!CameraMover.goal)
+        {
+            jampCountText.text = "ジャンプ回数　" + jampCount.ToString() + "/" + (fly / 5).ToString();
+            timeScore += Time.deltaTime;
+            timeText.text = String.Format("Time: {0:#.##}s", timeScore);
+        }
+        else
+        {
+            jampCountText.text = "";
         }
     }
 
@@ -245,42 +282,36 @@ public class CharacterManager : MonoBehaviour
     }
 
     //移動方法の管理
-    private void OnCollisionStay2D(Collision2D collision)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        //滑る
-        if (collision.gameObject.CompareTag("Ice") && playerState != PlayerState.ICE && playerState != PlayerState.WATER && isGround)
-        {
-            playerState = PlayerState.ICE;
-            _spriteRenderer.sprite = flyingCharacter;
-            jampCount = 0;
-        }
         //走る
         if (collision.gameObject.CompareTag("Ground") && playerState != PlayerState.WATER && isGround)
         {
             playerState = PlayerState.GROUND;
-            if (_spriteRenderer.sprite == flyingCharacter)
-            {
-                _spriteRenderer.sprite = dashCharacter;
-            }
-            jampCount = 0;
+            _spriteRenderer.sprite = dashCharacter;
         }
-    }
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        //飛ぶ
-        if ((collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Ice")) && (playerState == PlayerState.GROUND || playerState == PlayerState.ICE))
+        //滑る
+        else if (collision.gameObject.CompareTag("Ice") && playerState != PlayerState.WATER && isGround)
         {
-            playerState = PlayerState.AIR;
+            playerState = PlayerState.ICE;
+            _spriteRenderer.sprite = flyingCharacter;
         }
     }
-    private void OnTriggerEnter2D(Collider2D other)
+
+    //着地判定が上手くいかなかった時用
+    private void OnCollisionStay2D(Collision2D collision)
     {
-        //地上判定の補佐
-        if (other.gameObject.CompareTag("Ground"))
+        if (collision.gameObject.CompareTag("Ground") && playerState == PlayerState.AIR && isGround)
         {
-            isGround = true;
+            playerState = PlayerState.GROUND;
+            _spriteRenderer.sprite = dashCharacter;
+        }
+        else if (collision.gameObject.CompareTag("Ice") && playerState == PlayerState.AIR && isGround)
+        {
+            playerState = PlayerState.ICE;
         }
     }
+
     private void OnTriggerStay2D(Collider2D other)
     {
         //泳ぐ
@@ -288,7 +319,22 @@ public class CharacterManager : MonoBehaviour
         {
             playerState = PlayerState.WATER;
             _spriteRenderer.sprite = flyingCharacter;
-            jampCount = 0;
+        }
+        //地上判定の補佐
+        if ((other.gameObject.CompareTag("Ground") || other.gameObject.CompareTag("Ice")) && playerState != PlayerState.WATER)
+        {
+            isGround = true;
+        }
+        //地上で地面や氷に横から当たった場合の修正(継ぎ目でカクつくかと思ったが大丈夫そう？)
+        if (other.gameObject.CompareTag("Ground") && playerState == PlayerState.ICE)
+        {
+            playerState = PlayerState.GROUND;
+            _spriteRenderer.sprite = dashCharacter;
+        }
+        else if (other.gameObject.CompareTag("Ice") && playerState == PlayerState.GROUND)
+        {
+            playerState = PlayerState.ICE;
+            _spriteRenderer.sprite = flyingCharacter;
         }
     }
     private void OnTriggerExit2D(Collider2D other)
@@ -297,12 +343,6 @@ public class CharacterManager : MonoBehaviour
         if (other.gameObject.CompareTag("Water"))
         {
             playerState = PlayerState.AIR;
-            _spriteRenderer.sprite = flyingCharacter;
-        }
-        //地上判定の補佐
-        if (other.gameObject.CompareTag("Ground"))
-        {
-            isGround = false;
         }
     }
 }

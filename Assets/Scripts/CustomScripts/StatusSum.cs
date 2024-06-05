@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -35,7 +33,7 @@ public class StatusSum : MonoBehaviour
         Image buttonObject;
         GameObject obj5 = GameObject.Find("Button");
         buttonObject = obj5.GetComponent<Image>();
-        if (sum < 200 || 250 < sum )
+        if (sum > 200)
         {
             buttonObject.color = new Color(0.6745098f,1.0f, 0.1921569f, 0.2078431f);
         }else

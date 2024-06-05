@@ -10,6 +10,7 @@ public class MainSceneManager : MonoBehaviour
     void Start()
     {
         goalText.SetActive(false);
+        CameraMover.goal = false;
     }
 
     public IEnumerator Goal()

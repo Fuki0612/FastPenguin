@@ -1,9 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
-using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
 
 public class SlipValue : MonoBehaviour
 {
@@ -17,7 +13,7 @@ public class SlipValue : MonoBehaviour
     {
         if (slip < 100)
         {
-               slip = slip + 5;
+               slip += 5;
         }
         Update();
     }
