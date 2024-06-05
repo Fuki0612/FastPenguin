@@ -22,28 +22,35 @@ public class CustomSceneManager : MonoBehaviour
 
     public void Click()
     {
-        SwimValue swimScript;
-        GameObject obj1 = GameObject.Find("TextSwim");
-        swimScript = obj1.GetComponent<SwimValue>();
-        swim = swimScript.swim;
+        StatusSum SumScript;
+        GameObject obj = GameObject.Find("Sumtext");
+        SumScript = obj.GetComponent<StatusSum>();
 
-        SlipValue slipScript;
-        GameObject obj2 = GameObject.Find("TextSlip");
-        slipScript = obj2.GetComponent<SlipValue>();
-        slip = slipScript.slip;
+        if (200 <= SumScript.sum && SumScript.sum <= 250)
+        {
+            SwimValue swimScript;
+            GameObject obj1 = GameObject.Find("TextSwim");
+            swimScript = obj1.GetComponent<SwimValue>();
+            swim = swimScript.swim;
 
-        RunValue runScript;
-        GameObject obj3 = GameObject.Find("TextRun");
-        runScript = obj3.GetComponent<RunValue>();
-        run = runScript.run;
+            SlipValue slipScript;
+            GameObject obj2 = GameObject.Find("TextSlip");
+            slipScript = obj2.GetComponent<SlipValue>();
+            slip = slipScript.slip;
 
-        FlyValue flyScript;
-        GameObject obj4 = GameObject.Find("TextFly");
-        flyScript = obj4.GetComponent<FlyValue>();
-        fly = flyScript.fly;
+            RunValue runScript;
+            GameObject obj3 = GameObject.Find("TextRun");
+            runScript = obj3.GetComponent<RunValue>();
+            run = runScript.run;
 
-        gameManager.StatusSet(swim, slip, run, fly);
+            FlyValue flyScript;
+            GameObject obj4 = GameObject.Find("TextFly");
+            flyScript = obj4.GetComponent<FlyValue>();
+            fly = flyScript.fly;
 
-        SceneManager.LoadScene("MainScene");
+            gameManager.StatusSet(swim, slip, run, fly);
+
+            SceneManager.LoadScene("MainScene");
+        }
     }
 }
