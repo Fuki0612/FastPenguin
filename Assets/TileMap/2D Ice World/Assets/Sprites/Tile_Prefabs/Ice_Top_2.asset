@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Ice_Top_2
   m_EditorClassIdentifier: 
   m_Sprite: {fileID: 21300086, guid: 5afbff6f96636d34d801464d3179b7d2, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.81671154, g: 0.9974892, b: 1, a: 1}
   m_Transform:
     e00: 1
     e01: 0
