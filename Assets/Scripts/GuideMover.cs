@@ -24,7 +24,7 @@ public class GuideMover : MonoBehaviour
         //プレイヤーの移動に応じたステージガイドの移動(移動比率は概算)
         if (!CameraMover.goal)
         {
-            myRect.anchoredPosition = new Vector2(myDefaultX + (playerDefaultX - playerRect.anchoredPosition.x) / (89400 / 5400), myDefaultY);
+            myRect.anchoredPosition = new Vector2(myDefaultX + (playerDefaultX - playerRect.anchoredPosition.x) / 16.2f, myDefaultY);
         }
     }
 }
