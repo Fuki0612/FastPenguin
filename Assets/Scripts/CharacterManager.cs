@@ -95,7 +95,7 @@ public class CharacterManager : MonoBehaviour
         }
 
         //空中ジャンプ(5+fly/10回までしか連続で飛べない)
-        else if (Input.GetKeyDown(KeyCode.W) && !isGround && !isWater && fly > 0 && jampCount < 5 + fly/10)
+        else if (Input.GetKeyDown(KeyCode.W) && !isGround && !isWater && fly > 0 && jampCount < 5 + (int)fly/10)
         {
             playerState = PlayerState.AIR;
             if (_spriteRenderer.sprite != flyingCharacter)
@@ -151,7 +151,7 @@ public class CharacterManager : MonoBehaviour
             }
             else
             {
-                jampCountText.text = "ジャンプ回数　" + jampCount.ToString() + "/" + (5 + fly / 10).ToString();
+                jampCountText.text = "ジャンプ回数　" + jampCount.ToString() + "/" + (5 + (int)fly / 10).ToString();
             }
             timeScore += Time.deltaTime;
             timeText.text = String.Format("Time: {0:#.##}s", timeScore);
