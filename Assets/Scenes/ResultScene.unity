@@ -605,6 +605,9 @@ MonoBehaviour:
   pastRecord: {fileID: 1162949629}
   record: {fileID: 1302561363}
   message: {fileID: 469039301}
+  first: {fileID: 21300000, guid: 73a058670991017439fa7106a5e9945b, type: 3}
+  notFirst: {fileID: 21300000, guid: db55edfee64cb5a46b3d5bb5e1b6a784, type: 3}
+  penguin: {fileID: 1548097399}
 --- !u!1 &949077510
 GameObject:
   m_ObjectHideFlags: 0

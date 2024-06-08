@@ -11,11 +11,16 @@ public class ResultSceneManager : MonoBehaviour
     public Text pastRecord;
     public Text record;
     public Text message;
+    public Sprite first;
+    public Sprite notFirst;
+    public GameObject penguin;
+    private SpriteRenderer penguinSprite;
     private float pastScore;
     private float score;
     // Start is called before the first frame update
     void Start()
     {
+        penguinSprite = penguin.GetComponent<SpriteRenderer>();
         using (FileStream fileStream = new("score.txt", FileMode.OpenOrCreate, FileAccess.Read))
         {
             using StreamReader streamReader = new(fileStream, Encoding.UTF8);
@@ -34,6 +39,7 @@ public class ResultSceneManager : MonoBehaviour
         if (pastScore > score)
         {
             message.text = "YOU ARE FIRST PENGUIN!";
+            penguinSprite.sprite = first;
             using (FileStream fileStream = new("score.txt", FileMode.Truncate, FileAccess.Write))
             {
                 using StreamWriter streamWriter = new(fileStream, Encoding.UTF8);
@@ -43,6 +49,7 @@ public class ResultSceneManager : MonoBehaviour
         else
         {
             message.text = "YOU ARE NOT FIRST...";
+            penguinSprite.sprite = notFirst;
         }
     }
 
